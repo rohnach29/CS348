@@ -1,0 +1,67 @@
+{% extends 'runs/base.html' %}
+
+{% block title %}My Routes | Runner Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Routes</h2>
+            <a href="{% url 'runs:create_route' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add New Route
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {% if routes %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for route in routes %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ route.name }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ route.distance_km }} km</h6>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ route.start_location }} to {{ route.end_location }}
+                                </small>
+                            </div>
+                            
+                            {% if route.elevation_gain_m %}
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-mountain me-1"></i> {{ route.elevation_gain_m }}m elevation gain
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if route.description %}
+                            <p class="card-text">{{ route.description|truncatechars:100 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'runs:create_run' %}?route={{ route.id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-running me-1"></i> Add Run on this Route
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="mb-3">You haven't created any routes yet.</p>
+                    <a href="{% url 'runs:create_route' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Your First Route
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

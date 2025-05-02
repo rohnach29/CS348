@@ -1,0 +1,52 @@
+{% extends 'runs/base.html' %}
+
+{% block title %}Public Runs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Public Runs</h1>
+    
+    {% if runs %}
+        <div class="row">
+            {% for run in runs %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'runs:run_detail' run.id %}">
+                                    {{ run.title }}
+                                </a>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                By <a href="{% url 'runs:view_user_runs' run.runner_username %}">{{ run.runner_username }}</a>
+                                on {{ run.date }} at {{ run.start_time }}
+                            </h6>
+                            <p class="card-text">
+                                <strong>Distance:</strong> {{ run.distance_km }} km<br>
+                                <strong>Duration:</strong> {{ run.duration }}<br>
+                                {% if run.average_pace %}
+                                    <strong>Average Pace:</strong> {{ run.average_pace }} per km<br>
+                                {% endif %}
+                                {% if run.calories_burned %}
+                                    <strong>Calories Burned:</strong> {{ run.calories_burned }}<br>
+                                {% endif %}
+                                {% if run.weather_conditions %}
+                                    <strong>Weather:</strong> {{ run.weather_conditions }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No public runs available.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'runs:run_list' %}" class="btn btn-secondary">Back to My Runs</a>
+    </div>
+</div>
+{% endblock %} 

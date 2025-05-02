@@ -1,0 +1,249 @@
+{% extends 'runs/base.html' %}
+{% load form_tags %}
+
+{% block title %}Run Reports | Runner Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">Running Reports and Statistics</h2>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Filter Runs</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                        {{ form.start_date|addclass:"form-control" }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
+                        {{ form.end_date|addclass:"form-control" }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="{{ form.min_distance.id_for_label }}" class="form-label">Min Distance (km)</label>
+                        {{ form.min_distance|addclass:"form-control" }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="{{ form.max_distance.id_for_label }}" class="form-label">Max Distance (km)</label>
+                        {{ form.max_distance|addclass:"form-control" }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.route.id_for_label }}" class="form-label">Route</label>
+                        {{ form.route|addclass:"form-select" }}
+                    </div>
+                    
+                    <div class="col-md-12 text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'runs:run_report' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync me-1"></i> Reset Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if stats %}
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Summary Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="run-stats">
+                                    <h6 class="text-muted">Total Runs</h6>
+                                    <h3>{{ stats.total_runs }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="run-stats">
+                                    <h6 class="text-muted">Total Distance</h6>
+                                    <h3>{{ stats.total_distance|floatformat:1 }} km</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="run-stats">
+                                    <h6 class="text-muted">Average Distance</h6>
+                                    <h3>{{ stats.avg_distance|floatformat:1 }} km</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="run-stats">
+                                    <h6 class="text-muted">Average Duration</h6>
+                                    <h3>{{ stats.avg_duration_minutes|floatformat:1 }} min</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Monthly Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Run Results -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Filtered Runs</h5>
+                <span class="badge bg-primary">{{ runs.count }} runs</span>
+            </div>
+            <div class="card-body">
+                {% if runs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Runner</th>
+                                <th>Title</th>
+                                <th>Distance</th>
+                                <th>Duration</th>
+                                <th>Avg Pace</th>
+                                <th>Route</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in runs %}
+                            <tr>
+                                <td>{{ run.date }}</td>
+                                <td>{{ run.runner.user.username }}</td>
+                                <td>
+                                    <a href="{% url 'runs:run_detail' run.id %}">
+                                        {{ run.title }}
+                                        {% if not run.is_public %}
+                                        <i class="fas fa-lock text-muted small ms-1" title="Private"></i>
+                                        {% endif %}
+                                    </a>
+                                </td>
+                                <td>{{ run.distance_km }} km</td>
+                                <td>{{ run.duration }}</td>
+                                <td>{{ run.average_pace }}</td>
+                                <td>
+                                    {% if run.route %}
+                                    {{ run.route.name }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <p class="text-muted">No runs match your filter criteria.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if stats and stats.monthly_stats %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Get the pre-serialized JSON data
+            const monthlyStats = JSON.parse('{{ stats.monthly_stats|escapejs }}');
+            
+            // Prepare data for chart
+            const months = monthlyStats.map(function(stat) {
+                return stat.year + '-' + stat.month;
+            });
+            const distances = monthlyStats.map(function(stat) {
+                return stat.total_distance;
+            });
+            const counts = monthlyStats.map(function(stat) {
+                return stat.run_count;
+            });
+            
+            // Create chart
+            const ctx = document.getElementById('monthlyChart');
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Total Distance (km)',
+                                data: distances,
+                                backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Number of Runs',
+                                data: counts,
+                                type: 'line',
+                                fill: false,
+                                backgroundColor: 'rgba(231, 76, 60, 0.5)',
+                                borderColor: 'rgba(231, 76, 60, 1)',
+                                borderWidth: 2,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Total Distance (km)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Number of Runs'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error rendering chart:", e);
+        }
+    });
+</script>
+{% endif %}
+{% endblock %} 

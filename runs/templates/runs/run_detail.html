@@ -1,0 +1,102 @@
+{% extends 'runs/base.html' %}
+{% load form_tags %}
+
+{% block title %}{{ run.title }} | Runner Tracker{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h1 class="card-title">{{ run.title }}</h1>
+            <h6 class="card-subtitle mb-2 text-muted">
+                By <a href="{% url 'runs:view_user_runs' run.runner_username %}">{{ run.runner_username }}</a>
+                on {{ run.date }} at {{ run.start_time }}
+            </h6>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <p><strong>Distance:</strong> {{ run.distance_km }} km</p>
+                    <p><strong>Duration:</strong> {{ run.duration }}</p>
+                    {% if run.average_pace %}
+                        <p><strong>Average Pace:</strong> {{ run.average_pace }} per km</p>
+                    {% endif %}
+                    {% if run.route_name %}
+                        <p><strong>Route:</strong> {{ run.route_name }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    {% if run.calories_burned %}
+                        <p><strong>Calories Burned:</strong> {{ run.calories_burned }}</p>
+                    {% endif %}
+                    {% if run.average_heart_rate %}
+                        <p><strong>Average Heart Rate:</strong> {{ run.average_heart_rate }} bpm</p>
+                    {% endif %}
+                    {% if run.weather_conditions %}
+                        <p><strong>Weather:</strong> {{ run.weather_conditions }}</p>
+                    {% endif %}
+                    {% if run.temperature_c %}
+                        <p><strong>Temperature:</strong> {{ run.temperature_c }}°C</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if run.notes %}
+                <div class="mt-4">
+                    <h5>Notes</h5>
+                    <p>{{ run.notes }}</p>
+                </div>
+            {% endif %}
+            
+            {% if is_owner %}
+                <div class="mt-4">
+                    <a href="{% url 'runs:update_run' run.id %}" class="btn btn-primary">Edit Run</a>
+                    <a href="{% url 'runs:delete_run' run.id %}" class="btn btn-danger">Delete Run</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <h3>Comments</h3>
+            
+            {% if comments %}
+                {% for comment in comments %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <a href="{% url 'runs:view_user_runs' comment.commenter.user.username %}">
+                                    {{ comment.commenter.user.username }}
+                                </a>
+                                on {{ comment.created_at }}
+                            </h6>
+                            <p class="card-text">{{ comment.content }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No comments yet.</p>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Add Comment</button>
+                </form>
+            {% else %}
+                <div class="alert alert-info mt-4">
+                    Please <a href="{% url 'login' %}">login</a> to add comments.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'runs:run_list' %}" class="btn btn-secondary">Back to My Runs</a>
+        <a href="{% url 'runs:public_runs' %}" class="btn btn-info">View Public Runs</a>
+    </div>
+</div>
+{% endblock %} 

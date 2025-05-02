@@ -1,0 +1,49 @@
+{% extends 'runs/base.html' %}
+
+{% block title %}{{ target_user.username }}'s Runs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ target_user.username }}'s Runs</h1>
+    
+    {% if runs %}
+        <div class="row">
+            {% for run in runs %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ run.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ run.date }} at {{ run.start_time }}
+                            </h6>
+                            <p class="card-text">
+                                <strong>Distance:</strong> {{ run.distance_km }} km<br>
+                                <strong>Duration:</strong> {{ run.duration }}<br>
+                                {% if run.average_pace %}
+                                    <strong>Average Pace:</strong> {{ run.average_pace }} per km<br>
+                                {% endif %}
+                                {% if run.calories_burned %}
+                                    <strong>Calories Burned:</strong> {{ run.calories_burned }}<br>
+                                {% endif %}
+                                {% if run.weather_conditions %}
+                                    <strong>Weather:</strong> {{ run.weather_conditions }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No runs available for this user.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'runs:public_runs' %}" class="btn btn-secondary">
+            Back to Public Runs
+        </a>
+    </div>
+</div>
+{% endblock %} 
