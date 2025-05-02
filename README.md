@@ -95,7 +95,3 @@ The application uses PostgreSQL with the following main tables:
    python manage.py runserver
    ```
 9. Access the application at http://127.0.0.1:8000/
-
-## Screenshots
-
-*(Screenshots would be added after implementation)* 
